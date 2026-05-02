@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // Serve static frontend files from parent directory
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(__dirname));
 
 // API Routes
 app.use('/api/users', require('./routes/users'));
@@ -29,7 +29,7 @@ app.use('/api/mode', require('./routes/mode'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
 
 // Fallback: serve index.html
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'index.html')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.listen(PORT, () => {
     console.log(`Cozy Corner server running at http://localhost:${PORT}`);
