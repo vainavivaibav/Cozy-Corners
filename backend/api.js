@@ -1,5 +1,5 @@
 /* ===== COZY CORNER API HELPER ===== */
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = '/api';
 
 // Get current user from sessionStorage
 function getCurrentUser() {
