@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Music — Cozy Corner</title>
+    <meta name="description" content="Curated lo-fi, piano and ambient playlists for focused studying.">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .music-page { max-width:1100px; margin:0 auto; padding:40px 24px; animation:fadeInUp 0.6s ease-out; }
+        .music-page h1 { text-align:center; font-size:2.2rem; font-weight:700; color:white; text-shadow:0 4px 16px rgba(0,0,0,0.3); margin-bottom:6px; }
+        .music-page .subtitle { text-align:center; color:rgba(255,255,255,0.7); font-size:1rem; margin-bottom:36px; }
+
+        /* Now Playing status bar */
+        .np-status {
+            max-width:700px; margin:0 auto 36px; padding:18px 24px;
+            background:rgba(30,30,30,0.85); backdrop-filter:blur(16px);
+            border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius-lg);
+            display:flex; align-items:center; gap:16px;
+            box-shadow:0 8px 32px rgba(0,0,0,0.3);
+        }
+        .np-eq { display:flex; align-items:flex-end; gap:2px; height:20px; }
+        .np-eq span { width:3px; background:#1ed760; border-radius:2px; animation:eqBar 0.8s ease-in-out infinite alternate; }
+        .np-eq span:nth-child(1) { height:10px; animation-delay:0s; }
+        .np-eq span:nth-child(2) { height:18px; animation-delay:0.2s; }
+        .np-eq span:nth-child(3) { height:8px; animation-delay:0.4s; }
+        .np-eq span:nth-child(4) { height:14px; animation-delay:0.1s; }
+        .np-eq.paused span { animation:none; height:4px; background:#888; }
+        .np-info { flex:1; }
+        .np-info .np-label { font-size:0.7rem; color:#1ed760; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; }
+        .np-info .np-name { color:#fff; font-size:1rem; font-weight:600; margin-top:2px; }
+        .np-btn { background:#1ed760; color:#000; border:none; border-radius:24px; padding:10px 22px; font-size:0.85rem; font-weight:700; cursor:pointer; font-family:var(--font); transition:all 0.2s; }
+        .np-btn:hover { transform:scale(1.05); background:#1fdf64; }
+        .np-btn.secondary { background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2); }
+        .np-btn.secondary:hover { background:rgba(255,255,255,0.2); }
+        @keyframes eqBar { 0% { height:4px; } 100% { height:20px; } }
+
+        .playlist-section h2 { color:white; font-size:1.3rem; font-weight:600; margin-bottom:20px; text-shadow:0 2px 8px rgba(0,0,0,0.2); text-align:center; }
+        .playlist-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; margin-bottom:40px; }
+        .playlist-card {
+            background:rgba(255,255,255,0.18); backdrop-filter:blur(16px);
+            border:1px solid rgba(255,255,255,0.25); border-radius:var(--radius-lg);
+            padding:24px 20px; text-align:center; cursor:pointer; transition:all var(--transition);
+        }
+        .playlist-card:hover { background:rgba(255,255,255,0.32); transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.15); }
+        .playlist-card .pl-icon { font-size:2.4rem; margin-bottom:12px; display:block; }
+        .playlist-card h3 { font-size:1rem; font-weight:600; color:var(--text-primary); margin-bottom:6px; }
+        .playlist-card p { font-size:0.8rem; color:var(--text-muted); }
+        .playlist-card.active { border-color:#1ed760; background:rgba(30,215,96,0.15); box-shadow:0 0 20px rgba(30,215,96,0.15); }
+
+        .custom-embed { max-width:700px; margin:0 auto; }
+        .custom-embed h2 { color:white; font-size:1.2rem; margin-bottom:12px; text-align:center; }
+        .embed-input-row { display:flex; gap:10px; }
+        .embed-input-row input { flex:1; padding:12px 16px; border:1.5px solid rgba(255,255,255,0.3); border-radius:var(--radius-sm); font-family:var(--font); font-size:0.9rem; background:rgba(255,255,255,0.2); color:white; outline:none; }
+        .embed-input-row input::placeholder { color:rgba(255,255,255,0.5); }
+        .embed-input-row input:focus { border-color:var(--primary); }
+        .embed-input-row button { padding:12px 20px; }
+
+        @media(max-width:768px){ .music-page h1{font-size:1.7rem;} }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="bgVideo"><source src="night-rain.mp4" type="video/mp4"></video>
+    <div class="bg-overlay"></div>
+
+    <div class="music-page">
+        <h1>Study Music</h1>
+        <p class="subtitle">Curated playlists to keep you in the zone</p>
+
+        <!-- NOW PLAYING STATUS -->
+        <div class="np-status" id="npStatus">
+            <div class="np-eq paused" id="npEq"><span></span><span></span><span></span><span></span></div>
+            <div class="np-info">
+                <div class="np-label">Now Playing</div>
+                <div class="np-name" id="npName">Select a playlist below to start</div>
+            </div>
+            <button class="np-btn" id="npPlayBtn" onclick="openOrFocusPlayer()">▶ Play</button>
+        </div>
+
+        <!-- PLAYLIST GRID -->
+        <section class="playlist-section">
+            <h2>Recommended Playlists</h2>
+            <div class="playlist-grid">
+                <div class="playlist-card animate-fade-in-up stagger-1" data-url="https://open.spotify.com/embed/playlist/37i9dQZF1DX6VdMW310YC7" onclick="selectPlaylist(this)">
+                    <span class="pl-icon">&#127929;</span>
+                    <h3>Peaceful Piano</h3>
+                    <p>Soft piano melodies for calm focus</p>
+                </div>
+                <div class="playlist-card animate-fade-in-up stagger-2" data-url="https://open.spotify.com/embed/playlist/37i9dQZF1DX4sWSpwq3LiO" onclick="selectPlaylist(this)">
+                    <span class="pl-icon">&#127911;</span>
+                    <h3>Lofi Beats</h3>
+                    <p>Chill lo-fi hip hop to relax and study</p>
+                </div>
+                <div class="playlist-card animate-fade-in-up stagger-3" data-url="https://open.spotify.com/embed/album/3uSOBUaRNM0vPV0z16KUkq" onclick="selectPlaylist(this)">
+                    <span class="pl-icon">&#128187;</span>
+                    <h3>Coding Focus</h3>
+                    <p>Electronic ambient for deep work</p>
+                </div>
+                <div class="playlist-card animate-fade-in-up stagger-4" data-url="https://open.spotify.com/embed/playlist/37i9dQZF1DWVFJtzvDHN4L" onclick="selectPlaylist(this)">
+                    <span class="pl-icon">&#127796;</span>
+                    <h3>Calm Vibes</h3>
+                    <p>Gentle acoustics for unwinding</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CUSTOM PLAYLIST -->
+        <div class="custom-embed">
+            <h2>Paste Your Own Spotify Link</h2>
+            <div class="embed-input-row">
+                <input type="text" id="customLink" placeholder="https://open.spotify.com/playlist/...">
+                <button class="btn-primary-cozy" onclick="loadCustom()">Load</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        initNavbar('spotify');
+
+        // Restore active state from session
+        var savedUrl = sessionStorage.getItem('cozy_spotify_url');
+        var savedName = sessionStorage.getItem('cozy_spotify_name');
+        if (savedUrl && savedName) {
+            document.getElementById('npName').textContent = savedName;
+            document.getElementById('npPlayBtn').textContent = '🔊 Focus Player';
+            document.getElementById('npEq').classList.remove('paused');
+            // Highlight the active card
+            document.querySelectorAll('.playlist-card').forEach(function(c) {
+                if (c.getAttribute('data-url') === savedUrl) c.classList.add('active');
+            });
+        }
+
+        function selectPlaylist(el) {
+            var embedUrl = el.getAttribute('data-url');
+            var trackName = el.querySelector('h3').textContent;
+
+            // Highlight active
+            document.querySelectorAll('.playlist-card').forEach(function(c){ c.classList.remove('active'); });
+            el.classList.add('active');
+
+            // Update status bar
+            document.getElementById('npName').textContent = trackName;
+            document.getElementById('npPlayBtn').textContent = '🔊 Focus Player';
+            document.getElementById('npEq').classList.remove('paused');
+
+            // Save state and open popup
+            saveMiniPlayerState(embedUrl, trackName);
+            openSpotifyPopup();
+
+            // Log to music_history in DB
+            var uid = getUserId();
+            if (uid) {
+                apiPost('/playlists/history', { user_id: uid, track_name: trackName });
+            }
+        }
+
+        function openOrFocusPlayer() {
+            if (savedUrl || sessionStorage.getItem('cozy_spotify_url')) {
+                openSpotifyPopup();
+            } else {
+                showToast('Click a playlist card first!', 'info', 3000);
+            }
+        }
+
+        function loadCustom() {
+            var link = document.getElementById('customLink').value.trim();
+            if(!link) return;
+            var embed = link.replace('open.spotify.com/', 'open.spotify.com/embed/');
+            saveMiniPlayerState(embed, 'Custom Playlist');
+            document.getElementById('npName').textContent = 'Custom Playlist';
+            document.getElementById('npPlayBtn').textContent = '🔊 Focus Player';
+            document.getElementById('npEq').classList.remove('paused');
+            openSpotifyPopup();
+            var uid = getUserId();
+            if (uid) {
+                apiPost('/playlists/history', { user_id: uid, track_name: 'Custom Playlist' });
+            }
+        }
+    </script>
+</body>
+</html>

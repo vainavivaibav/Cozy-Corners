@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html>
+<!--We are using a pomodoro timer here as our main component(Pomodoro is a time-management technique that improves focus by working in short timed intervals followed by regular breaks.
+)-->
+
+<head>
+    <title>Cozy Corner</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image:
+                linear-gradient(rgba(245, 245, 220, 0.7), rgba(245, 245, 220, 0.7)),
+                url('day.png');
+            background-size: cover;
+            background-position: center;
+            transition: 0.5s ease;
+            font-family: Arial, sans-serif;
+        }
+
+
+        nav {
+            display: flex;
+            align-items: center;
+            padding: 15px 35px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        #logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+            margin-right: auto;
+        }
+
+        #pomodoroBtn,
+        #theme {
+            padding: 10px 18px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6B8E23, #556B2F);
+            color: white;
+            border-radius: 12px;
+            font-size: 15px;
+            margin-right: 15px;
+        }
+
+        #todoBtn {
+            padding: 10px;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6B8E23, #556B2F);
+            color: white;
+        }
+
+        #tipsBtn {
+            padding: 10px 18px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6B8E23, #556B2F);
+            color: white;
+            border-radius: 12px;
+            font-size: 15px;
+            margin-right: 15px;
+            margin-left: 15px;
+        }
+
+        #featuresPopup {
+            display: none;
+            position: fixed;
+            top: 100px;
+            right: 40px;
+            width: 250px;
+            padding: 15px;
+            background: rgba(245, 245, 220, 0.85);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-size: 14px;
+        }
+
+        #spotifyRedirect {
+            color: #556B2F;
+        }
+
+        .spotify-box {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        :root {
+            --primary: #6B8E23;
+            --accent: #556B2F;
+            --base: #F5F5DC;
+        }
+
+        iframe {
+            max-width: 700px;
+            width: 70%;
+            border-radius: 12px;
+        }
+
+        .popup {
+            width: 260px;
+            background: rgba(245, 245, 220, 0.85);
+            position: fixed;
+            top: 100px;
+            right: 40px;
+            padding: 15px;
+            border-radius: 12px;
+            display: none;
+        }
+
+        #pomodoroPopup {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(245, 245, 220, 0.85);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #pomodoroPopup .popup-content {
+            background: rgba(245, 245, 220, 0.85);
+            padding: 25px;
+            width: 350px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        #timerDisplay {
+            font-size: 40px;
+            margin: 20px 0;
+        }
+
+        #closeTodo {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            float: right;
+        }
+
+        #authButtons {
+            margin: 20px 35px;
+        }
+
+        #authButtons button {
+            padding: 10px 18px;
+            margin-right: 10px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6B8E23, #556B2F);
+            color: white;
+            border-radius: 12px;
+            font-size: 15px;
+        }
+
+        .authPopup {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(245, 245, 220, 0.85);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .authContent {
+            background: rgba(245, 245, 220, 0.85);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            width: 300px;
+        }
+
+        /* RECOMMENDATIONS SIDEBAR */
+        #recContainer {
+            position: absolute;
+            right: 20px;
+            top: 200px;
+            width: 180px;
+            background: rgba(245, 245, 220, 0.85);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .recItem.btn.btn-sm {
+            background: linear-gradient(135deg, #6B8E23, #556B2F);
+            color: white;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .recItem.btn.btn-sm:hover {
+            opacity: 0.8;
+        }
+
+        .cozy-btn {
+            background: linear-gradient(135deg, #6B8E23, #556B2F);
+            color: white;
+            border-radius: 12px;
+            border: none;
+            padding: 10px 18px;
+        }
+
+        .cozy-btn:hover {
+            opacity: 0.85;
+        }
+
+        h2,
+        h3,
+        strong {
+            color: #556B2F;
+        }
+
+        #cafeBtn {
+            position: absolute;
+            right: 20px;
+            top: 420px;
+            /* adjust if needed */
+            width: 180px;
+            margin-top: 50px;
+            background: linear-gradient(135deg, #6B8E23, #556B2F);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px;
+            cursor: pointer;
+
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        #bgVideo {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        #cafeBtn {
+            position: absolute;
+            right: 20px;
+            top: 420px;
+            width: 180px;
+
+
+            background: linear-gradient(135deg, #6B8E23, #556B2F);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body id="page">
+    <video autoplay muted loop id="bgVideo">
+        <source src="night-rain.mp4" type="video/mp4">
+    </video>
+    <nav>
+        <img id="logo" src="logo.jpg">
+        <button id="pomodoroBtn" onclick="openPomodoro()">Pomodoro</button>
+        <button id="theme" onclick="changeMode()">Change Mode</button>
+        <button id="todoBtn">📝</button>
+        <button id="tipsBtn" onclick="showFeatures()">Tips</button>
+    </nav>
+
+    <!-- AUTH BUTTONS -->
+    <div id="authButtons">
+        <button class="btn cozy-btn me-2" onclick="openLogin()">Login</button>
+        <button class="btn cozy-btn" onclick="openSignup()">Sign Up</button>
+    </div>
+
+    <!-- LOGIN POPUP -->
+    <div id="loginPopup" class="authPopup">
+        <div class="authContent rounded shadow">
+            <span onclick="closeLogin()">✖</span>
+            <h3>Login</h3>
+            <input type="text" id="loginUser" placeholder="Username"><br><br>
+            <input type="password" id="loginPass" placeholder="Password"><br><br>
+            <button onclick="loginUser()">Login</button>
+        </div>
+    </div>
+
+    <!-- SIGNUP POPUP -->
+    <div id="signupPopup" class="authPopup">
+        <div class="authContent">
+            <span onclick="closeSignup()">✖</span>
+            <h3>Sign Up</h3>
+            <input type="text" id="signupUser" placeholder="Username"><br><br>
+            <input type="password" id="signupPass" placeholder="Password"><br><br>
+            <button onclick="signupUser()">Create Account</button>
+        </div>
+    </div>
+
+    <!--Spotify pop up-->
+    <div class="spotify-box container text-center mt-4">
+        <iframe id="mainSpotify" src="https://open.spotify.com/embed/playlist/5cIOYFIlEH58rcJLyK7Dz7" height="352">
+        </iframe>
+    </div>
+
+    <!-- REDIRECT USERS TO FULL SPOTIFY -->
+    <div style="text-align:center; margin: 15px 20px;">
+        <a id="spotifyRedirect" href="https://open.spotify.com/playlist/5cIOYFIlEH58rcJLyK7Dz7" target="_blank"
+            style="color:white; font-weight:bold; text-decoration:none;">
+            🎧 Open full playlist on Spotify
+        </a>
+    </div>
+
+    <!-- RECOMMENDATION SIDEBAR -->
+    <div id="recContainer">
+        <strong>Recommended</strong><br><br>
+
+        <button class="recItem btn btn-sm"
+            onclick="swapPlaylist('https://open.spotify.com/embed/playlist/37i9dQZF1DX6VdMW310YC7')">
+            Peaceful Piano
+        </button>
+
+        <button class="recItem btn btn-sm"
+            onclick="swapPlaylist('https://open.spotify.com/embed/playlist/37i9dQZF1DX4sWSpwq3LiO')">
+            Lofi Beats
+        </button>
+
+        <button class="recItem btn btn-sm"
+            onclick="swapPlaylist('https://open.spotify.com/embed/album/3uSOBUaRNM0vPV0z16KUkq?utm_source=generator')">
+            Coding Focus
+        </button>
+
+        <button class="recItem btn btn-sm"
+            onclick="swapPlaylist('https://open.spotify.com/embed/playlist/37i9dQZF1DWVFJtzvDHN4L')">
+            Calm Vibes
+        </button>
+    </div>
+    <!--MAPS-->
+
+    <button id="cafeBtn" onclick="openMap()">☕ Nearby Cafes</button>
+
+
+
+    <!-- TODO -->
+    <div id="todo" class="popup">
+        <button id="closeTodo">✖</button>
+        <ul id="todolist"></ul>
+        <input id="todoinput" placeholder="Add task">
+        <button id="addtodo">+</button>
+    </div>
+
+    <!-- POMODORO -->
+    <div id="pomodoroPopup">
+        <div class="popup-content rounded shadow">
+            <span onclick="closePomodoro()">✖</span>
+            <h2 class="text-success">Pomodoro</h2>
+            <input id="workTime" value="25">
+            <input id="breakTime" value="5">
+            <h3 id="timerDisplay">25:00</h3>
+            <button onclick="startPomodoro()">Start</button>
+            <button onclick="stopPomodoro()">Stop</button>
+        </div>
+    </div>
+
+    <!-- FEATURES -->
+    <div id="featuresPopup">
+        <strong>Special Features:</strong>
+        <ul>
+            <li>Press <b>t</b> to change theme</li>
+            <li>Double click on Todo list to clear tasks</li>
+        </ul>
+        <button onclick="closeFeatures()">Close</button>
+    </div>
+    <div id="mapPopup" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+">
+        <div style="
+        position:relative;
+        width:80%;
+        height:80%;
+        border-radius:15px;
+        overflow:hidden;
+    ">
+
+            <!-- CLOSE BUTTON -->
+            <button onclick="closeMap()" style="
+            position:absolute;
+            top:10px;
+            right:10px;
+            z-index:1001;
+            padding:8px 12px;
+            border:none;
+            border-radius:10px;
+            background:#556B2F;
+            color:white;
+            cursor:pointer;
+        ">✖</button>
+
+            <div id="map" style="height:100%; width:100%;"></div>
+        </div>
+    </div>
+
+    <script>
+        function openMap() {
+            document.getElementById("mapPopup").style.display = "flex";
+            loadMap(); // your existing function
+        }
+
+        function closeMap() {
+            document.getElementById("mapPopup").style.display = "none";
+        }
+
+        const cafeIcon = L.icon({
+            iconUrl: "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
+            iconSize: [30, 30],
+        });
+        function loadMap() {
+            if (!navigator.geolocation) {
+                alert("Geolocation not supported");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(position => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                // Create map
+                const map = L.map('map').setView([lat, lng], 14);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Show your location
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup("You are here")
+                    .openPopup();
+
+                // Overpass query (IMPROVED)
+                const query = `
+        [out:json];
+        (
+          node["amenity"="cafe"](around:3000, ${lat}, ${lng});
+          node["amenity"="restaurant"](around:3000, ${lat}, ${lng});
+          node["amenity"="fast_food"](around:3000, ${lat}, ${lng});
+        );
+        out;
+        `;
+
+                fetch("https://overpass.kumi.systems/api/interpreter", {
+                    method: "POST",
+                    body: query
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (!data.elements || data.elements.length === 0) {
+                            alert("No cafes found nearby!");
+                            return;
+                        }
+
+                        data.elements.forEach(place => {
+                            if (place.lat && place.lon) {
+                                L.marker([place.lat, place.lon]).addTo(map)
+                                    .bindPopup(place.tags?.name || "Cafe nearby");
+                            }
+                        });
+                    })
+                    .catch(() => {
+                        alert("Error fetching cafes (API issue)");
+                    });
+
+            }, () => {
+                alert("Please allow location access");
+            });
+        }
+        /* THEME */
+        var isNight = false;
+        var isNight = true;
+
+        function changeMode() {
+            const video = document.getElementById("bgVideo");
+            const source = video.querySelector("source");
+
+            if (isNight) {
+                source.src = "day.mp4";   // make sure this file exists
+            } else {
+                source.src = "night-rain.mp4";
+            }
+
+            video.load(); // VERY IMPORTANT
+            video.play();
+
+            isNight = !isNight;
+        }
+        /* POMODORO */
+        var pomodoroInterval;
+        var totalSeconds;
+        var isBreak = false;
+
+        function openPomodoro() {
+            document.getElementById("pomodoroPopup").style.display = "flex";
+        }
+        function closePomodoro() {
+            document.getElementById("pomodoroPopup").style.display = "none";
+        }
+        function startPomodoro() {
+            stopPomodoro();
+            var work = document.getElementById("workTime").value * 60;
+            var breakTime = document.getElementById("breakTime").value * 60;
+            totalSeconds = isBreak ? breakTime : work;
+
+            pomodoroInterval = setInterval(function () {
+                var mins = Math.floor(totalSeconds / 60);
+                var secs = totalSeconds % 60;
+                if (secs < 10) secs = "0" + secs;
+                document.getElementById("timerDisplay").innerHTML = mins + ":" + secs;
+                totalSeconds--;
+                if (totalSeconds < 0) {
+                    clearInterval(pomodoroInterval);
+                    isBreak = !isBreak;
+                    alert(isBreak ? "Break Time!" : "Back to Work!");
+                    startPomodoro();
+                }
+            }, 1000);
+        }
+        function stopPomodoro() {
+            clearInterval(pomodoroInterval);
+        }
+
+        /* TODO */
+        var todoBtn = document.getElementById("todoBtn");
+        var todoBox = document.getElementById("todo");
+        var addBtn = document.getElementById("addtodo");
+        var input = document.getElementById("todoinput");
+        var list = document.getElementById("todolist");
+        var closeTodo = document.getElementById("closeTodo");
+
+        todoBtn.onclick = () => todoBox.style.display = "block";
+        closeTodo.onclick = () => todoBox.style.display = "none";
+
+        addBtn.onclick = function () {
+            if (input.value === "") return;
+            var li = document.createElement("li");
+            li.innerHTML = input.value;
+            list.appendChild(li);
+            input.value = "";
+        };
+
+        list.addEventListener("dblclick", function () {
+            list.innerHTML = "";
+            alert("All tasks cleared!");
+        });
+
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") addBtn.click();
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "t") changeMode();
+        });
+
+        /* FEATURES */
+        function showFeatures() {
+            document.getElementById("featuresPopup").style.display = "block";
+        }
+        function closeFeatures() {
+            document.getElementById("featuresPopup").style.display = "none";
+        }
+
+        /* AUTH */
+        function openLogin() {
+            document.getElementById("loginPopup").style.display = "flex";
+        }
+        function closeLogin() {
+            document.getElementById("loginPopup").style.display = "none";
+        }
+        function openSignup() {
+            document.getElementById("signupPopup").style.display = "flex";
+        }
+        function closeSignup() {
+            document.getElementById("signupPopup").style.display = "none";
+        }
+
+        function signupUser() {
+            var u = document.getElementById("signupUser").value;
+            var p = document.getElementById("signupPass").value;
+
+            if (u === "" || p === "") {
+                alert("Please fill all fields");
+                return;
+            }
+            if (localStorage.getItem(u)) {
+                alert("User already exists!");
+                return;
+            }
+            localStorage.setItem(u, p);
+            alert("Signup successful! Please login.");
+            closeSignup();
+        }
+
+        function loginUser() {
+            var u = document.getElementById("loginUser").value;
+            var p = document.getElementById("loginPass").value;
+            var stored = localStorage.getItem(u);
+
+            if (stored === null) {
+                alert("User not found!");
+            } else if (stored === p) {
+                alert("Login successful!");
+                closeLogin();
+            } else {
+                alert("Incorrect password!");
+            }
+        }
+
+        /* SWAP SPOTIFY PLAYLIST */
+        function swapPlaylist(newLink) {
+            var iframe = document.getElementById("mainSpotify");
+            iframe.src = newLink;
+
+            // convert embed link → normal Spotify link
+            var fullLink = newLink.replace("/embed", "");
+
+            document.getElementById("spotifyRedirect").href = fullLink;
+        }
+
+    </script>
+
+</body>
+
+</html>

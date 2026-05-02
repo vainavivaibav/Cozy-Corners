@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozy Corner — Your Study Sanctuary</title>
+    <meta name="description"
+        content="Cozy Corner is your aesthetic study companion with Pomodoro timer, curated playlists, task management, and break-time games.">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ===== HERO SECTION ===== */
+        .hero {
+            text-align: center;
+            padding: 60px 24px 40px;
+            animation: fadeInUp 0.7s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 12px;
+            letter-spacing: -1.5px;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #e8a838, #f0c36d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 520px;
+            margin: 0 auto 32px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== FEATURE CARDS ===== */
+        .features-section {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: var(--radius-lg);
+            padding: 32px 24px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            transition: height var(--transition);
+        }
+
+        .feature-card:nth-child(1)::before {
+            background: linear-gradient(90deg, #e8a838, #f0c36d);
+        }
+
+        .feature-card:nth-child(2)::before {
+            background: linear-gradient(90deg, #5a7a2e, #7da843);
+        }
+
+        .feature-card:nth-child(3)::before {
+            background: linear-gradient(90deg, #1DB954, #1ed760);
+        }
+
+        .feature-card:nth-child(4)::before {
+            background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-card:hover::before {
+            height: 6px;
+        }
+
+        .feature-icon {
+            font-size: 2.8rem;
+            margin-bottom: 16px;
+            display: block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .feature-card:nth-child(2) .feature-icon {
+            animation-delay: 0.4s;
+        }
+
+        .feature-card:nth-child(3) .feature-icon {
+            animation-delay: 0.8s;
+        }
+
+        .feature-card:nth-child(4) .feature-icon {
+            animation-delay: 1.2s;
+        }
+
+        .feature-card h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .feature-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ===== QUICK SPOTIFY PREVIEW ===== */
+        .quick-preview {
+            max-width: 700px;
+            margin: 0 auto 60px;
+            padding: 0 24px;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        .quick-preview h2 {
+            text-align: center;
+            color: white;
+            font-size: 1.4rem;
+            margin-bottom: 16px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .quick-preview iframe {
+            width: 100%;
+            border-radius: var(--radius-md);
+            border: none;
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- VIDEO BACKGROUND -->
+    <video autoplay muted loop id="bgVideo">
+        <source src="night-rain.mp4" type="video/mp4">
+    </video>
+    <div class="bg-overlay"></div>
+
+    <!-- HERO -->
+    <section class="hero">
+        <h1>Welcome to <span>Cozy Corner</span></h1>
+        <p>Your aesthetic study sanctuary. Focus with Pomodoro, vibe with music, stay organized, and take fun breaks.
+        </p>
+        <div class="hero-cta">
+            <a href="pomodoro.html" class="btn-primary-cozy" style="text-decoration:none;"> Start Studying</a>
+            <a href="games.html" class="btn-accent" style="text-decoration:none;"> Play Games</a>
+        </div>
+    </section>
+
+    <!-- FEATURE CARDS -->
+    <section class="features-section">
+        <div class="features-grid">
+            <a href="pomodoro.html" class="feature-card animate-fade-in-up stagger-1">
+                <span class="feature-icon">⏱️</span>
+                <h3>Pomodoro Timer</h3>
+                <p>Stay focused with customizable work & break sessions</p>
+            </a>
+            <a href="todo.html" class="feature-card animate-fade-in-up stagger-2">
+                <span class="feature-icon">✅</span>
+                <h3>Todo List</h3>
+                <p>Track your tasks and crush your goals one by one</p>
+            </a>
+            <a href="spotify.html" class="feature-card animate-fade-in-up stagger-3">
+                <span class="feature-icon">🎵</span>
+                <h3>Study Music</h3>
+                <p>Curated lo-fi, piano & ambient playlists to set the mood</p>
+            </a>
+            <a href="games.html" class="feature-card animate-fade-in-up stagger-4">
+                <span class="feature-icon"></span>
+                <h3>Break Games</h3>
+                <p>Tic-Tac-Toe, Memory & Snake to recharge during breaks</p>
+            </a>
+        </div>
+    </section>
+
+    <!-- QUICK SPOTIFY PREVIEW -->
+    <section class="quick-preview">
+        <h2>Now Playing</h2>
+        <iframe src="https://open.spotify.com/embed/playlist/5cIOYFIlEH58rcJLyK7Dz7" height="152"
+            allow="encrypted-media"></iframe>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <p>☕ Cozy Corner — Built with warmth and good vibes</p>
+    </footer>
+
+    <script src="api.js"></script>
+    <script src="nav.js"></script>
+    <script>
+        initNavbar('home');
+    </script>
+</body>
+
+</html>

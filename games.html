@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Break Games — Cozy Corner</title>
+    <meta name="description" content="Take a break with fun mini-games: Tic-Tac-Toe, Memory Cards, and Snake.">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .games-page { max-width:1100px; margin:0 auto; padding:40px 24px; animation:fadeInUp 0.6s ease-out; }
+        .games-page h1 { text-align:center; font-size:2.2rem; font-weight:700; color:white; text-shadow:0 4px 16px rgba(0,0,0,0.3); margin-bottom:6px; }
+        .games-page .subtitle { text-align:center; color:rgba(255,255,255,0.7); font-size:1rem; margin-bottom:36px; }
+
+        .games-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:28px; }
+
+        .game-card {
+            background:rgba(255,255,255,0.2);
+            backdrop-filter:blur(20px);
+            border:1px solid rgba(255,255,255,0.3);
+            border-radius:var(--radius-xl);
+            padding:28px 24px;
+            text-align:center;
+            box-shadow:0 16px 48px rgba(0,0,0,0.12);
+        }
+        .game-card h2 { font-size:1.3rem; font-weight:700; color:var(--text-primary); margin-bottom:4px; }
+        .game-card .game-sub { font-size:0.85rem; color:var(--text-muted); margin-bottom:18px; }
+
+        /* ===== TIC TAC TOE ===== */
+        .ttt-board { display:grid; grid-template-columns:repeat(3,72px); gap:6px; justify-content:center; margin-bottom:16px; }
+        .ttt-cell {
+            width:72px; height:72px;
+            background:rgba(255,255,255,0.4);
+            border:2px solid rgba(90,122,46,0.3);
+            border-radius:var(--radius-sm);
+            font-size:2rem; font-weight:700; font-family:var(--font);
+            cursor:pointer; transition:all var(--transition);
+            color:var(--text-primary);
+        }
+        .ttt-cell:hover { background:rgba(255,255,255,0.6); }
+        .ttt-cell.x { color:#5a7a2e; }
+        .ttt-cell.o { color:#e8a838; }
+        .ttt-status { font-size:0.95rem; font-weight:600; color:var(--text-primary); margin-bottom:10px; min-height:28px; }
+
+        /* ===== MEMORY ===== */
+        .mem-board { display:grid; grid-template-columns:repeat(4,64px); gap:8px; justify-content:center; margin-bottom:16px; }
+        .mem-card {
+            width:64px; height:64px;
+            background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+            border:none; border-radius:var(--radius-sm);
+            font-size:1.6rem; cursor:pointer;
+            transition:all 0.4s ease;
+            color:transparent;
+            display:flex; align-items:center; justify-content:center;
+        }
+        .mem-card.flipped, .mem-card.matched {
+            background:rgba(255,255,255,0.5);
+            color:var(--text-primary);
+        }
+        .mem-card.matched { opacity:0.6; cursor:default; }
+        .mem-moves { font-size:0.9rem; color:var(--text-muted); margin-bottom:10px; }
+
+        /* ===== SNAKE ===== */
+        .snake-canvas-wrap { display:flex; justify-content:center; margin-bottom:12px; }
+        #snakeCanvas {
+            border:2px solid rgba(90,122,46,0.4);
+            border-radius:var(--radius-sm);
+            background:rgba(0,0,0,0.15);
+        }
+        .snake-score { font-size:0.9rem; color:var(--text-muted); margin-bottom:10px; }
+        .snake-controls { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+        .snake-controls button { padding:8px 16px; font-size:0.85rem; }
+
+        .game-reset { margin-top:8px; }
+
+        @media(max-width:768px){
+            .games-page h1{font-size:1.7rem;}
+            .ttt-board{grid-template-columns:repeat(3,60px);}
+            .ttt-cell{width:60px;height:60px;font-size:1.6rem;}
+            .mem-board{grid-template-columns:repeat(4,54px);}
+            .mem-card{width:54px;height:54px;font-size:1.3rem;}
+        }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="bgVideo"><source src="night-rain.mp4" type="video/mp4"></video>
+    <div class="bg-overlay"></div>
+
+    <div class="games-page">
+        <h1>Take a Break!</h1>
+        <p class="subtitle">Recharge with some quick fun games</p>
+
+        <div class="games-grid">
+            <!-- TIC TAC TOE -->
+            <div class="game-card animate-fade-in-up stagger-1">
+                <h2>Tic-Tac-Toe</h2>
+                <p class="game-sub">Play against the computer</p>
+                <div class="ttt-status" id="tttStatus">Your turn (X)</div>
+                <div class="ttt-board" id="tttBoard"></div>
+                <button class="btn-primary-cozy game-reset" onclick="tttReset()">New Game</button>
+            </div>
+
+            <!-- MEMORY CARDS -->
+            <div class="game-card animate-fade-in-up stagger-2">
+                <h2>Memory Cards</h2>
+                <p class="game-sub">Match all the pairs</p>
+                <div class="mem-moves" id="memMoves">Moves: 0</div>
+                <div class="mem-board" id="memBoard"></div>
+                <button class="btn-primary-cozy game-reset" onclick="memReset()">New Game</button>
+            </div>
+
+            <!-- SNAKE -->
+            <div class="game-card animate-fade-in-up stagger-3">
+                <h2>Snake</h2>
+                <p class="game-sub">Use arrow keys or buttons</p>
+                <div class="snake-score">Score: <strong id="snakeScore">0</strong></div>
+                <div class="snake-canvas-wrap">
+                    <canvas id="snakeCanvas" width="280" height="280"></canvas>
+                </div>
+                <div class="snake-controls">
+                    <button class="btn-primary-cozy" onclick="snakeStart()">Start</button>
+                    <button class="btn-primary-cozy" onclick="snakeDir('up')">&#9650;</button>
+                    <button class="btn-primary-cozy" onclick="snakeDir('down')">&#9660;</button>
+                    <button class="btn-primary-cozy" onclick="snakeDir('left')">&#9664;</button>
+                    <button class="btn-primary-cozy" onclick="snakeDir('right')">&#9654;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="nav.js"></script>
+    <script>
+    initNavbar('games');
+
+    /* ===================== TIC TAC TOE ===================== */
+    var tttBoard, tttTurn, tttOver;
+    function tttReset() {
+        tttBoard = ['','','','','','','','',''];
+        tttTurn = 'X'; tttOver = false;
+        document.getElementById('tttStatus').textContent = 'Your turn (X)';
+        renderTTT();
+    }
+    function renderTTT() {
+        var el = document.getElementById('tttBoard');
+        el.innerHTML = '';
+        for (var i = 0; i < 9; i++) {
+            var btn = document.createElement('button');
+            btn.className = 'ttt-cell' + (tttBoard[i] === 'X' ? ' x' : tttBoard[i] === 'O' ? ' o' : '');
+            btn.textContent = tttBoard[i];
+            btn.dataset.i = i;
+            btn.onclick = function() { tttPlay(parseInt(this.dataset.i)); };
+            el.appendChild(btn);
+        }
+    }
+    function tttPlay(i) {
+        if (tttOver || tttBoard[i] || tttTurn !== 'X') return;
+        tttBoard[i] = 'X';
+        if (tttCheck('X')) { document.getElementById('tttStatus').textContent = 'You win!'; tttOver = true; renderTTT(); return; }
+        if (tttBoard.indexOf('') === -1) { document.getElementById('tttStatus').textContent = 'Draw!'; tttOver = true; renderTTT(); return; }
+        tttTurn = 'O';
+        document.getElementById('tttStatus').textContent = 'Computer thinking...';
+        renderTTT();
+        setTimeout(tttAI, 400);
+    }
+    function tttAI() {
+        // Simple AI: try win, block, center, random
+        var move = tttFindMove('O');
+        if (move === -1) move = tttFindMove('X');
+        if (move === -1 && tttBoard[4] === '') move = 4;
+        if (move === -1) { var empty = []; for(var i=0;i<9;i++) if(tttBoard[i]==='') empty.push(i); move = empty[Math.floor(Math.random()*empty.length)]; }
+        tttBoard[move] = 'O';
+        if (tttCheck('O')) { document.getElementById('tttStatus').textContent = 'Computer wins!'; tttOver = true; }
+        else if (tttBoard.indexOf('') === -1) { document.getElementById('tttStatus').textContent = 'Draw!'; tttOver = true; }
+        else { tttTurn = 'X'; document.getElementById('tttStatus').textContent = 'Your turn (X)'; }
+        renderTTT();
+    }
+    function tttFindMove(p) {
+        var wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        for (var w = 0; w < wins.length; w++) {
+            var a=wins[w][0],b=wins[w][1],c=wins[w][2];
+            if(tttBoard[a]===p&&tttBoard[b]===p&&tttBoard[c]==='') return c;
+            if(tttBoard[a]===p&&tttBoard[c]===p&&tttBoard[b]==='') return b;
+            if(tttBoard[b]===p&&tttBoard[c]===p&&tttBoard[a]==='') return a;
+        }
+        return -1;
+    }
+    function tttCheck(p) {
+        var wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        for (var w = 0; w < wins.length; w++) { if(tttBoard[wins[w][0]]===p&&tttBoard[wins[w][1]]===p&&tttBoard[wins[w][2]]===p) return true; }
+        return false;
+    }
+    tttReset();
+
+    /* ===================== MEMORY CARDS ===================== */
+    var memEmojis = ['&#127808;','&#127812;','&#127807;','&#9749;','&#127811;','&#128038;','&#127803;','&#127774;'];
+    var memCards, memFlipped, memMatched, memMoves, memLocked;
+    function memReset() {
+        var pairs = memEmojis.concat(memEmojis);
+        memCards = pairs.sort(function() { return Math.random() - 0.5; });
+        memFlipped = []; memMatched = []; memMoves = 0; memLocked = false;
+        document.getElementById('memMoves').textContent = 'Moves: 0';
+        renderMem();
+    }
+    function renderMem() {
+        var el = document.getElementById('memBoard');
+        el.innerHTML = '';
+        for (var i = 0; i < memCards.length; i++) {
+            var btn = document.createElement('button');
+            var isOpen = memFlipped.indexOf(i) !== -1 || memMatched.indexOf(i) !== -1;
+            btn.className = 'mem-card' + (memFlipped.indexOf(i) !== -1 ? ' flipped' : '') + (memMatched.indexOf(i) !== -1 ? ' matched' : '');
+            btn.innerHTML = isOpen ? memCards[i] : '?';
+            btn.dataset.i = i;
+            btn.onclick = function() { memFlip(parseInt(this.dataset.i)); };
+            el.appendChild(btn);
+        }
+    }
+    function memFlip(i) {
+        if (memLocked || memFlipped.indexOf(i) !== -1 || memMatched.indexOf(i) !== -1 || memFlipped.length >= 2) return;
+        memFlipped.push(i);
+        renderMem();
+        if (memFlipped.length === 2) {
+            memMoves++;
+            document.getElementById('memMoves').textContent = 'Moves: ' + memMoves;
+            memLocked = true;
+            var a = memFlipped[0], b = memFlipped[1];
+            if (memCards[a] === memCards[b]) {
+                memMatched.push(a, b); memFlipped = []; memLocked = false;
+                renderMem();
+                if (memMatched.length === memCards.length) {
+                    setTimeout(function() { showToast('You matched all pairs in ' + memMoves + ' moves!', 'success', 5000); }, 300);
+                }
+            } else {
+                setTimeout(function() { memFlipped = []; memLocked = false; renderMem(); }, 800);
+            }
+        }
+    }
+    memReset();
+
+    /* ===================== SNAKE ===================== */
+    var canvas = document.getElementById('snakeCanvas');
+    var ctx = canvas.getContext('2d');
+    var gs = 20; // grid size
+    var tc = canvas.width / gs; // tile count = 14
+    var snake, food, dx, dy, score, snakeInterval;
+
+    function snakeStart() {
+        if (snakeInterval) clearInterval(snakeInterval);
+        snake = [{x:7,y:7}]; dx=1; dy=0; score=0;
+        document.getElementById('snakeScore').textContent = '0';
+        placeFood();
+        snakeInterval = setInterval(snakeTick, 140);
+    }
+    function placeFood() {
+        food = {x: Math.floor(Math.random()*tc), y: Math.floor(Math.random()*tc)};
+    }
+    function snakeTick() {
+        var head = {x: snake[0].x + dx, y: snake[0].y + dy};
+        // walls
+        if (head.x < 0 || head.x >= tc || head.y < 0 || head.y >= tc) { clearInterval(snakeInterval); snakeInterval=null; showToast('Game Over! Score: ' + score, 'info', 4000); return; }
+        // self collision
+        for (var i = 0; i < snake.length; i++) { if (snake[i].x === head.x && snake[i].y === head.y) { clearInterval(snakeInterval); snakeInterval=null; showToast('Game Over! Score: ' + score, 'info', 4000); return; } }
+        snake.unshift(head);
+        if (head.x === food.x && head.y === food.y) { score++; document.getElementById('snakeScore').textContent = score; placeFood(); }
+        else { snake.pop(); }
+        snakeDraw();
+    }
+    function snakeDraw() {
+        ctx.fillStyle = 'rgba(245,240,225,0.1)';
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        // food
+        ctx.fillStyle = '#e8a838';
+        ctx.beginPath(); ctx.arc(food.x*gs+gs/2, food.y*gs+gs/2, gs/2-2, 0, 2*Math.PI); ctx.fill();
+        // snake
+        for (var i = 0; i < snake.length; i++) {
+            ctx.fillStyle = i === 0 ? '#3d5a1a' : '#5a7a2e';
+            ctx.fillRect(snake[i].x*gs+1, snake[i].y*gs+1, gs-2, gs-2);
+        }
+    }
+    function snakeDir(dir) {
+        if (dir==='up' && dy!==1) {dx=0;dy=-1;}
+        if (dir==='down' && dy!==-1) {dx=0;dy=1;}
+        if (dir==='left' && dx!==1) {dx=-1;dy=0;}
+        if (dir==='right' && dx!==-1) {dx=1;dy=0;}
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key==='ArrowUp') snakeDir('up');
+        if (e.key==='ArrowDown') snakeDir('down');
+        if (e.key==='ArrowLeft') snakeDir('left');
+        if (e.key==='ArrowRight') snakeDir('right');
+    });
+    // initial draw
+    snake=[{x:7,y:7}]; food={x:10,y:7}; snakeDraw();
+    </script>
+</body>
+</html>
