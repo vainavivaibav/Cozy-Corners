@@ -19,28 +19,40 @@ router.get('/', async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST /api/tasks
+// POST /api/tasks (uses TRANSACTION for atomicity)
 router.post('/', async (req, res) => {
+    const conn = await db.getConnection(); // get a dedicated connection for transaction
     try {
         console.log('[TASKS POST] req.body:', JSON.stringify(req.body));
         const { user_id, title, description, due_date, tags } = req.body;
-        if (!user_id || !title) return res.status(400).json({ error: 'user_id and title required' });
-        const [result] = await db.execute(
+        if (!user_id || !title) { conn.release(); return res.status(400).json({ error: 'user_id and title required' }); }
+
+        await conn.beginTransaction(); // START TRANSACTION
+
+        const [result] = await conn.execute(
             'INSERT INTO task (user_id, title, description, due_date) VALUES (?, ?, ?, ?)',
             [user_id, title, description || null, due_date || null]
         );
         const taskId = result.insertId;
-        // Attach tags
+
+        // Attach tags (within same transaction)
         if (tags && tags.length > 0) {
             for (const tagName of tags) {
-                const [tagRows] = await db.execute('SELECT tag_id FROM tag WHERE name = ?', [tagName]);
+                const [tagRows] = await conn.execute('SELECT tag_id FROM tag WHERE name = ?', [tagName]);
                 if (tagRows.length > 0) {
-                    await db.execute('INSERT IGNORE INTO task_tag (task_id, tag_id) VALUES (?, ?)', [taskId, tagRows[0].tag_id]);
+                    await conn.execute('INSERT IGNORE INTO task_tag (task_id, tag_id) VALUES (?, ?)', [taskId, tagRows[0].tag_id]);
                 }
             }
         }
+
+        await conn.commit(); // COMMIT — all succeeded
+        conn.release();
         res.status(201).json({ task_id: taskId });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) {
+        await conn.rollback(); // ROLLBACK — undo everything on error
+        conn.release();
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // PUT /api/tasks/:id

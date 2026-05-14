@@ -32,4 +32,5 @@ select * from task;
 select * from task_tag;
 select * from user_achievement;
 
-ALTER TABLE playlist DROP COLUMN created_at;
+show tables;
+show databases;
