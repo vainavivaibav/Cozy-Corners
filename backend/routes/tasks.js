@@ -62,7 +62,13 @@ router.put('/:id', async (req, res) => {
         const { title, description, due_date, status } = req.body;
         await db.execute(
             'UPDATE task SET title=COALESCE(?,title), description=COALESCE(?,description), due_date=COALESCE(?,due_date), status=COALESCE(?,status) WHERE task_id=?',
-            [title, description, due_date, status, req.params.id]
+            [
+                title !== undefined ? title : null, 
+                description !== undefined ? description : null, 
+                due_date !== undefined ? due_date : null, 
+                status !== undefined ? status : null, 
+                req.params.id
+            ]
         );
         res.json({ message: 'Updated' });
     } catch (err) { res.status(500).json({ error: err.message }); }

@@ -48,7 +48,13 @@ router.put('/:id', async (req, res) => {
     try {
         const { email, dob, phone } = req.body;
         await db.execute('UPDATE user SET email=COALESCE(?,email), dob=COALESCE(?,dob), phone=COALESCE(?,phone) WHERE user_id=?',
-            [email, dob, phone, req.params.id]);
+            [
+                email !== undefined ? email : null,
+                dob !== undefined ? dob : null,
+                phone !== undefined ? phone : null,
+                req.params.id
+            ]
+        );
         res.json({ message: 'Updated' });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
